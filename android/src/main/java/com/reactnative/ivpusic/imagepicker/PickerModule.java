@@ -163,23 +163,17 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             return;
         }
 
-        permissionsCheck(activity, promise, Collections.singletonList(Manifest.permission.WRITE_EXTERNAL_STORAGE), new Callable<Void>() {
-            @Override
-            public Void call() {
-                try {
-                    File file = new File(module.getTmpDir(activity));
-                    if (!file.exists()) throw new Exception("File does not exist");
+        try {
+            File file = new File(module.getTmpDir(activity));
+            if (!file.exists()) throw new Exception("File does not exist");
 
-                    module.deleteRecursive(file);
-                    promise.resolve(null);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    promise.reject(E_ERROR_WHILE_CLEANING_FILES, ex.getMessage());
-                }
+            module.deleteRecursive(file);
+            promise.resolve(null);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            promise.reject(E_ERROR_WHILE_CLEANING_FILES, ex.getMessage());
+        }
 
-                return null;
-            }
-        });
     }
 
     @ReactMethod
@@ -197,29 +191,22 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
             return;
         }
 
-        permissionsCheck(activity, promise, Collections.singletonList(Manifest.permission.WRITE_EXTERNAL_STORAGE), new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                try {
-                    String path = pathToDelete;
-                    final String filePrefix = "file://";
-                    if (path.startsWith(filePrefix)) {
-                        path = path.substring(filePrefix.length());
-                    }
-
-                    File file = new File(path);
-                    if (!file.exists()) throw new Exception("File does not exist. Path: " + path);
-
-                    module.deleteRecursive(file);
-                    promise.resolve(null);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    promise.reject(E_ERROR_WHILE_CLEANING_FILES, ex.getMessage());
-                }
-
-                return null;
+        try {
+            String path = pathToDelete;
+            final String filePrefix = "file://";
+            if (path.startsWith(filePrefix)) {
+                path = path.substring(filePrefix.length());
             }
-        });
+
+            File file = new File(path);
+            if (!file.exists()) throw new Exception("File does not exist. Path: " + path);
+
+            module.deleteRecursive(file);
+            promise.resolve(null);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            promise.reject(E_ERROR_WHILE_CLEANING_FILES, ex.getMessage());
+        }
     }
 
     private void permissionsCheck(final Activity activity, final Promise promise, final List<String> requiredPermissions, final Callable<Void> callback) {
@@ -248,8 +235,6 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
                             if (grantResult == PackageManager.PERMISSION_DENIED) {
                                 if (permission.equals(Manifest.permission.CAMERA)) {
                                     promise.reject(E_NO_CAMERA_PERMISSION_KEY, E_NO_CAMERA_PERMISSION_MSG);
-                                } else if (permission.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                                    promise.reject(E_NO_LIBRARY_PERMISSION_KEY, E_NO_LIBRARY_PERMISSION_MSG);
                                 } else {
                                     // should not happen, we fallback on E_NO_LIBRARY_PERMISSION_KEY rejection for minimal consistency
                                     promise.reject(E_NO_LIBRARY_PERMISSION_KEY, "Required permission missing");
@@ -297,13 +282,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         setConfiguration(options);
         resultCollector.setup(promise, false);
 
-        permissionsCheck(activity, promise, Arrays.asList(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE), new Callable<Void>() {
-            @Override
-            public Void call() {
-                initiateCamera(activity);
-                return null;
-            }
-        });
+        initiateCamera(activity);
     }
 
     private void initiateCamera(Activity activity) {
@@ -391,13 +370,7 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         setConfiguration(options);
         resultCollector.setup(promise, multiple);
 
-        permissionsCheck(activity, promise, Collections.singletonList(Manifest.permission.WRITE_EXTERNAL_STORAGE), new Callable<Void>() {
-            @Override
-            public Void call() {
-                initiatePicker(activity);
-                return null;
-            }
-        });
+        initiatePicker(activity);
     }
 
     @ReactMethod
@@ -413,13 +386,8 @@ class PickerModule extends ReactContextBaseJavaModule implements ActivityEventLi
         resultCollector.setup(promise, false);
 
         final Uri uri = Uri.parse(options.getString("path"));
-        permissionsCheck(activity, promise, Collections.singletonList(Manifest.permission.WRITE_EXTERNAL_STORAGE), new Callable<Void>() {
-            @Override
-            public Void call() {
-                startCropping(activity, uri);
-                return null;
-            }
-        });
+
+        startCropping(activity, uri);
     }
 
     private String getBase64StringFromFile(String absoluteFilePath) {
